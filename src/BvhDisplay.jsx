@@ -5,6 +5,25 @@ import {BVHLoader} from 'three/examples/jsm/loaders/BVHLoader.js';
 import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader.js';
 import {MTLLoader} from 'three/examples/jsm/loaders/MTLLoader.js';
 import Loading from './Loader';
+import styled from 'styled-components';
+
+const NAV_HEIGHT = '44px';
+
+const StyledSelector = styled.div`
+    overflow: auto;
+    justify-content: start;
+    padding: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: #1b1b1b;
+    border-bottom: 1px solid #2a2a2a;
+    height: ${NAV_HEIGHT};
+
+    > * {
+        min-width: fit-content;
+    }
+`;
 
 const BvhDisplay = (props) => {
     const [loading, setLoading] = useState(false);
@@ -43,7 +62,7 @@ const BvhDisplay = (props) => {
             0.1,
             1000,
         );
-        camera.position.set(-50, 20, 70);
+        camera.position.set(-10, 20, 70);
         camera.lookAt(0, 50, 0);
 
         const renderer = new THREE.WebGLRenderer({antialias: true});
@@ -119,6 +138,7 @@ const BvhDisplay = (props) => {
             const h = container.clientHeight;
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
+            console.log('resizing canvas', w, h);
             renderer.setSize(w, h);
         };
         window.addEventListener('resize', onResize);
@@ -231,19 +251,11 @@ const BvhDisplay = (props) => {
                 width: '100vw',
                 height: '100vh',
 
-                display: 'grid',
-                gridTemplateRows: 'auto 1fr',
+                // display: 'grid',
+                // gridTemplateRows: 'auto 1fr',
             }}>
             {/* simple toolbar */}
-            <div
-                style={{
-                    padding: '8px',
-                    display: 'flex',
-                    gap: '8px',
-                    alignItems: 'center',
-                    background: '#1b1b1b',
-                    borderBottom: '1px solid #2a2a2a',
-                }}>
+            <StyledSelector>
                 <span style={{color: '#ddd', fontFamily: 'system-ui'}}>
                     Select BVH Dataset:
                 </span>
@@ -280,7 +292,7 @@ const BvhDisplay = (props) => {
                         {opt.label}
                     </button>
                 ))}
-            </div>
+            </StyledSelector>
 
             {/* canvas mount */}
             <div ref={mountRef} style={{width: '100%', height: '100%'}} />
