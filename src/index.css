@@ -1,0 +1,35 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+:root {
+    --black: #121212;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: var(--black);
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen-Sans, Ubuntu,
+        Cantarell, Helvetica Neue, sans-serif;
+    color: #fff;
+}
+body {
+    background: linear-gradient(
+        74deg,
+        rgb(66, 133, 244) 0px,
+        rgb(155, 114, 203) 9%,
+        rgb(217, 101, 112) 20%,
+        rgb(217, 101, 112) 24%,
+        rgb(155, 114, 203) 35%,
+        rgb(66, 133, 244) 44%,
+        rgb(155, 114, 203) 50%,
+        rgb(217, 101, 112) 56%,
+        rgb(217, 101, 112) 75%,
+        rgb(217, 101, 112) 100%
+    );
+}

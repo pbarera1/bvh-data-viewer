@@ -48,11 +48,11 @@ function init() {
     floor.position.y = 0;
     scene.add(floor);
 
-    // add grid lines
+    // Grid lines
     const gridHelper = new THREE.GridHelper(2000, 40, 0x888888, 0x444444);
     scene.add(gridHelper);
 
-    // axis
+    // Axis
     scene.add(new THREE.AxesHelper(100));
 
     // Renderer
@@ -60,7 +60,7 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // controls
+    // Controls
     controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 50, 0);
     controls.update();
@@ -74,7 +74,7 @@ function init() {
         '/bball.bvh',
         function (result) {
             skeletonHelper = new THREE.SkeletonHelper(result.skeleton.bones[0]);
-            skeletonHelper.skeleton = result.skeleton; // link skeleton
+            skeletonHelper.skeleton = result.skeleton;
             scene.add(skeletonHelper);
 
             // Calculate the bounding box of the skeleton to find its center
@@ -82,14 +82,8 @@ function init() {
             const center = box.getCenter(new THREE.Vector3());
 
             // Center the camera on the skeleton and zoom in
-            controls.target.copy(center); // Set the controls' target to the skeleton's center
+            controls.target.copy(center);
             controls.update();
-
-            // Calculate an appropriate camera position
-            // This places the camera a short distance away from the center of the skeleton
-            // const cameraDistance = 100; // Adjust this value to zoom in or out
-            // camera.position.set(center.x, center.y + 50, center.z + cameraDistance);
-            // camera.lookAt(center); // Make sure the camera is looking at the center
 
             // The BVHLoader returns THREE.AnimationClip(s)
             mixer = new THREE.AnimationMixer(skeletonHelper);
@@ -110,7 +104,7 @@ function init() {
     // Load the MTL the obj file for hoop
     const mtlLoader = new MTLLoader();
     mtlLoader.load(
-        '/hoop.mtl', // Path to your .mtl file
+        '/hoop.mtl',
         function (materials) {
             // After the materials are loaded, preload them
             materials.preload();
@@ -119,16 +113,14 @@ function init() {
             const objLoader = new OBJLoader();
             objLoader.setMaterials(materials);
 
-            // Now, load the OBJ file
+            // load the OBJ file
             objLoader.load(
-                '/hoop.obj', // Path to your .obj file
+                '/hoop.obj',
                 function (hoop) {
                     // Position, scale, and add to the scene
-                    hoop.position.set(0, 0, -70); // Adjust position as needed
-                    // hoop.rotation.y = Math.PI; // Adjust rotation as needed
-                    // Rotate 90 degrees around the X-axis
+                    hoop.position.set(0, 0, -70);
                     hoop.rotation.x = -Math.PI / 2;
-                    hoop.scale.set(0.1, 0.1, 0.1); // Adjust scale as needed
+                    hoop.scale.set(0.1, 0.1, 0.1);
                     scene.add(hoop);
                 },
                 function (xhr) {
@@ -149,7 +141,7 @@ function init() {
 
     // Load the MTL the obj file for ball
     mtlLoader.load(
-        '/ball.mtl', // Path to your .mtl file
+        '/ball.mtl',
         function (materials) {
             // After the materials are loaded, preload them
             materials.preload();
@@ -158,15 +150,14 @@ function init() {
             const objLoader = new OBJLoader();
             objLoader.setMaterials(materials);
 
-            // Now, load the OBJ file
+            // load the OBJ file
             objLoader.load(
-                '/ball.obj', // Path to your .obj file
+                '/ball.obj',
                 function (ball) {
                     // Position, scale, and add to the scene
-                    ball.position.set(0, 1, -60); // Adjust position as needed
-                    // Rotate 90 degrees around the X-axis
+                    ball.position.set(0, 1, -60);
                     ball.rotation.x = -Math.PI / 2;
-                    ball.scale.set(0.1, 0.1, 0.1); // Adjust scale as needed
+                    ball.scale.set(0.1, 0.1, 0.1);
                     scene.add(ball);
                 },
                 function (xhr) {
