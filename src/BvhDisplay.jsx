@@ -98,7 +98,7 @@ const BvhDisplay = (props) => {
             materials.preload();
             const objLoader = new OBJLoader();
             objLoader.setMaterials(materials);
-            objLoader.load('/3d-models/.obj', (ball) => {
+            objLoader.load('/3d-models/ball.obj', (ball) => {
                 ball.position.set(0, 1, -60);
                 ball.rotation.x = -Math.PI / 2;
                 ball.scale.set(0.1, 0.1, 0.1);
