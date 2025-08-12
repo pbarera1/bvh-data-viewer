@@ -1,32 +1,42 @@
-    name: Deploy to GitHub Pages
+# .github/workflows/deploy.yml
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [ main ]   # or your default branch
 
-    on:
-      push:
-        branches:
-          - main # or your main branch name
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
-    jobs:
-      build-and-deploy:
-        runs-on: ubuntu-latest
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
-        steps:
-          - name: Checkout
-            uses: actions/checkout@v4
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build    # Vite builds to dist/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
 
-          - name: Setup Node.js
-            uses: actions/setup-node@v4
-            with:
-              node-version: '20' # or your desired Node.js version
-
-          - name: Install dependencies
-            run: npm install
-
-          - name: Build
-            run: npm run build
-
-          - name: Deploy to GitHub Pages
-            uses: peaceiris/actions-gh-pages@v3
-            with:
-              github_token: ${{ secrets.GITHUB_TOKEN }}
-              publish_dir: ./dist
-              # cname: YOUR_REPOSITORY_NAME.github.io # Optional: if you have a custom domain
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
