@@ -6,6 +6,19 @@
 
 :root {
     --black: #121212;
+    --white: #ffffff;
+    --success: #49a147;
+    --warning: #ffad0d;
+    --error: #e35141;
+
+    --gray-100: #fafafa;
+    --gray-150: #f0f0f0;
+    --gray-200: #eeeeee;
+    --gray-300: #6a6a6a;
+    --gray-400: #343434;
+    --gray-500: #121212;
+
+    --dodgerblue: dodgerblue;
 }
 
 html,
@@ -17,6 +30,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen-Sans, Ubuntu,
         Cantarell, Helvetica Neue, sans-serif;
     color: #fff;
+    overflow: hidden;
 }
 body {
     background: linear-gradient(

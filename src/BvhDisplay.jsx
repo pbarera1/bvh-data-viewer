@@ -6,22 +6,33 @@ import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader.js';
 import {MTLLoader} from 'three/examples/jsm/loaders/MTLLoader.js';
 import Loading from './Loader';
 import styled from 'styled-components';
-
-const NAV_HEIGHT = '44px';
+import {throttle} from './utils';
 
 const StyledSelector = styled.div`
     overflow: auto;
     justify-content: start;
     padding: 8px;
     display: flex;
-    gap: 8px;
+    gap: 12px;
     align-items: center;
     background: #1b1b1b;
     border-bottom: 1px solid #2a2a2a;
-    height: ${NAV_HEIGHT};
 
-    > * {
+    .label {
         min-width: fit-content;
+    }
+    .button {
+        min-width: fit-content;
+        padding: 6px 24px;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        position: relative;
     }
 `;
 
@@ -36,26 +47,27 @@ const BvhDisplay = (props) => {
         {label: 'Dribbble Side', path: '/bvh-data/sideways-dribble.bvh'},
     ];
 
-    const mountRef = useRef(null);
-    // Refs to engine bits we need across handlers
+    const canvasRef = useRef(null);
+    // Refs to three.js parts
     const sceneRef = useRef(null);
     const cameraRef = useRef(null);
     const rendererRef = useRef(null);
     const controlsRef = useRef(null);
     const clockRef = useRef(null);
 
-    // BVH-specific refs so we can dispose/swap
+    // BVH-specific refs
     const mixerRef = useRef(null);
     const skeletonHelperRef = useRef(null);
     const boneGroupRef = useRef(null);
 
-    // one-time scene setup
+    // setup three.js scene on mount
     useEffect(() => {
-        const container = mountRef.current;
-
+        const container = canvasRef.current;
+        // set scene
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x111111);
 
+        // camera
         const camera = new THREE.PerspectiveCamera(
             50,
             container.clientWidth / container.clientHeight,
@@ -65,11 +77,13 @@ const BvhDisplay = (props) => {
         camera.position.set(-10, 20, 70);
         camera.lookAt(0, 50, 0);
 
+        // renderer
         const renderer = new THREE.WebGLRenderer({antialias: true});
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(renderer.domElement);
 
+        // controls
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.target.set(0, 50, 0);
         controls.enableDamping = true;
@@ -95,16 +109,18 @@ const BvhDisplay = (props) => {
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
+        // axis
         scene.add(new THREE.GridHelper(2000, 40, 0x888888, 0x444444));
         scene.add(new THREE.AxesHelper(100));
 
-        // Load hoop (unchanged)
+        // hoop model
         const mtlLoader = new MTLLoader();
         mtlLoader.load('/3d-models/hoop.mtl', (materials) => {
             materials.preload();
             const objLoader = new OBJLoader();
             objLoader.setMaterials(materials);
             objLoader.load('/3d-models/hoop.obj', (hoop) => {
+                // set position add the scene
                 hoop.position.set(0, 0, -70);
                 hoop.rotation.x = -Math.PI / 2;
                 hoop.scale.set(0.1, 0.1, 0.1);
@@ -112,12 +128,13 @@ const BvhDisplay = (props) => {
             });
         });
 
-        // Load ball (unchanged visual)
+        // ball model
         mtlLoader.load('/3d-models/ball.mtl', (materials) => {
             materials.preload();
             const objLoader = new OBJLoader();
             objLoader.setMaterials(materials);
             objLoader.load('/3d-models/ball.obj', (ball) => {
+                // set position, add to scene
                 ball.position.set(0, 1, -60);
                 ball.rotation.x = -Math.PI / 2;
                 ball.scale.set(0.1, 0.1, 0.1);
@@ -125,14 +142,14 @@ const BvhDisplay = (props) => {
             });
         });
 
-        // save refs
+        // save refs for access outside useEffect
         sceneRef.current = scene;
         cameraRef.current = camera;
         rendererRef.current = renderer;
         controlsRef.current = controls;
         clockRef.current = clock;
 
-        // resize
+        // resize handler
         const onResize = () => {
             const w = container.clientWidth;
             const h = container.clientHeight;
@@ -141,8 +158,10 @@ const BvhDisplay = (props) => {
             console.log('resizing canvas', w, h);
             renderer.setSize(w, h);
         };
-        window.addEventListener('resize', onResize);
+        const throttledOnResize = throttle(onResize, 300);
+        window.addEventListener('resize', throttledOnResize);
 
+        // animate
         let raf;
         const tick = () => {
             raf = requestAnimationFrame(tick);
@@ -156,7 +175,7 @@ const BvhDisplay = (props) => {
         // cleanup
         return () => {
             cancelAnimationFrame(raf);
-            window.removeEventListener('resize', onResize);
+            window.removeEventListener('resize', throttledOnResize);
             controls.dispose();
             renderer.dispose();
             floorGeometry.dispose();
@@ -210,6 +229,7 @@ const BvhDisplay = (props) => {
             path,
             (result) => {
                 setLoading(false);
+                // skeleton
                 const skeletonHelper = new THREE.SkeletonHelper(result.skeleton.bones[0]);
                 skeletonHelper.skeleton = result.skeleton;
                 scene.add(skeletonHelper);
@@ -239,9 +259,14 @@ const BvhDisplay = (props) => {
         );
     };
 
-    // (re)load BVH whenever bvhPath changes
+    // load BVH when bvhPath changes
     useEffect(() => {
         if (!sceneRef.current) return;
+        // reset camera when new dataset loaded
+        if (cameraRef.current) {
+            cameraRef.current.position.set(-10, 20, 70);
+            cameraRef.current.lookAt(0, 50, 0);
+        }
         loadBVH(bvhPath);
     }, [bvhPath]);
 
@@ -250,39 +275,27 @@ const BvhDisplay = (props) => {
             style={{
                 width: '100vw',
                 height: '100vh',
-
-                // display: 'grid',
-                // gridTemplateRows: 'auto 1fr',
             }}>
-            {/* simple toolbar */}
+            {/* toolbar */}
             <StyledSelector>
-                <span style={{color: '#ddd', fontFamily: 'system-ui'}}>
-                    Select BVH Dataset:
-                </span>
+                <span className="label">Select Dataset:</span>
                 {bvhOptions.map((opt) => (
                     <button
+                        className="button"
                         key={opt.path}
                         onClick={() => setBvhPath(opt.path)}
                         style={{
-                            padding: '6px 18px',
-                            width: '180px',
-                            background: bvhPath === opt.path ? '#2e7df6' : '#2a2a2a',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: 6,
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px',
-                            position: 'relative',
+                            background:
+                                bvhPath === opt.path
+                                    ? 'var(--dodgerblue)'
+                                    : 'var(--gray-400)',
                         }}>
                         {bvhPath === opt.path && loading && (
                             <Loading
                                 fill="#fff"
                                 style={{
                                     position: 'absolute',
-                                    left: '6px',
+                                    left: '4px',
                                     width: '12px',
                                     height: '12px',
                                     margin: '0',
@@ -293,9 +306,8 @@ const BvhDisplay = (props) => {
                     </button>
                 ))}
             </StyledSelector>
-
-            {/* canvas mount */}
-            <div ref={mountRef} style={{width: '100%', height: '100%'}} />
+            {/* canvas for three.js */}
+            <div ref={canvasRef} style={{width: '100%', height: '100%'}} />
         </div>
     );
 };
