@@ -11,7 +11,7 @@ import {throttle} from './utils';
 const StyledSelector = styled.div`
     overflow: auto;
     justify-content: start;
-    padding: 8px;
+    padding: 8px 16px;
     display: flex;
     gap: 12px;
     align-items: center;
